@@ -20,20 +20,6 @@ export class AuthService {
     return { id: (result as any).insertId, name, email, mobile };
   }
 
-  // static async login({ email, password }: LoginInput) {
-  //   const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-  //   const user = (rows as any[])[0];
-  //   if (!user) throw new Error('Invalid email or password');
-
-  //   const valid = await bcrypt.compare(password, user.password);
-  //   if (!valid) throw new Error('Invalid email or password');
-
-  //   const accessToken = generateAccessToken({ id: user.id, email: user.email });
-  //   const refreshToken = generateRefreshToken({ id: user.id, email: user.email });
-
-  //   return { accessToken, refreshToken };
-  // }
-
   static async login({ email, password }: LoginInput) {
     const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     const user = (rows as any[])[0];
@@ -82,6 +68,14 @@ export class AuthService {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     };
+  }
+
+  static async logout(refreshToken: string) {
+    if (!refreshToken) {
+      throw new Error('Refresh token is required');
+    }
+
+    await TokenService.revokeToken(refreshToken);
   }
 
 }

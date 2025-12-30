@@ -22,5 +22,6 @@ const loginSchema = Joi.object({
 router.post('/signup', validateRequest(signupSchema), AuthController.signup);
 router.post('/login', validateRequest(loginSchema), AuthController.login);
 router.post('/refresh-token', AuthController.refreshToken);
+router.post('/logout', AuthController.logout);
 
 export default router;

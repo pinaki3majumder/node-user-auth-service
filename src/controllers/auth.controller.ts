@@ -31,4 +31,13 @@ export class AuthController {
       res.status(401).json({ success: false, message: err.message });
     }
   }
+
+  static async logout(req: Request, res: Response) {
+    try {
+      await AuthService.logout(req.body.refreshToken);
+      res.json({ success: true, message: 'Logged out successfully' });
+    } catch (err: any) {
+      res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }
