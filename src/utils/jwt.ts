@@ -10,3 +10,5 @@ export const generateAccessToken = (payload: object) => {
 export const generateRefreshToken = (payload: object) => {
   return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: '6m' });
 };
+
+// @TODO: Verify tokens

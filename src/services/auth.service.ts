@@ -9,7 +9,7 @@ export class AuthService {
   static async signup({ name, email, mobile, password }: SignupInput) {
     const [existing] = await db.query('SELECT id FROM users WHERE email = ?', [email]);
     if ((existing as any[]).length > 0) throw new Error('Email already exists');
-
+    // @TODO: Check for mobile uniqueness
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
@@ -78,4 +78,50 @@ export class AuthService {
     await TokenService.revokeToken(refreshToken);
   }
 
+  static async checkEmailExists(email: string): Promise<boolean> {
+    const sql = `SELECT id FROM users WHERE email = ? LIMIT 1`;
+    const [rows]: any = await db.query(sql, [email]);
+    return rows.length > 0;
+  }
+
+  static async verifyOtp(email: string, otp: number): Promise<string> {
+    // 1️⃣ check email exists
+    const emailExists = await this.checkEmailExists(email);
+    if (!emailExists) {
+      throw new Error('Email not found');
+    }
+
+    // 2️⃣ validate OTP
+    if (otp !== 123456) {
+      throw new Error('Invalid OTP');
+    }
+
+    // 3️⃣ fetch user id (needed for token)
+    const sql = `SELECT id FROM users WHERE email = ? LIMIT 1`;
+    const [rows]: any = await db.query(sql, [email]);
+
+    const userId = rows[0].id;
+
+    // 4️⃣ generate access token (3 mins)
+    const accessToken = jwt.sign(
+      { userId },
+      process.env.ACCESS_TOKEN_SECRET as string,
+      { expiresIn: '3m' }
+    );
+
+    return accessToken;
+  }
+
+  static async changePassword(userId: number, password: string): Promise<void> {   
+    // 1️⃣ hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 2️⃣ update DB
+    const sql = `UPDATE users SET password = ? WHERE id = ?`;
+    const [result]: any = await db.query(sql, [hashedPassword, userId]);
+
+    if (result.affectedRows === 0) {
+      throw new Error('User not found');
+    }
+  }
 }

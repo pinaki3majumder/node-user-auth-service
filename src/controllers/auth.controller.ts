@@ -40,4 +40,66 @@ export class AuthController {
       res.status(400).json({ success: false, message: err.message });
     }
   }
+
+  static async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      const exists = await AuthService.checkEmailExists(email);
+
+      if (!exists) {
+        return res.status(404).json({
+          success: false,
+          message: 'Email not found',
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Email exists',
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Something went wrong',
+      });
+    }
+  }
+
+  static async verifyOtp(req: Request, res: Response) {
+    try {
+      const { email, otp } = req.body;
+
+      const token = await AuthService.verifyOtp(email, otp);
+
+      return res.status(200).json({
+        success: true,
+        accessToken: token,
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  static async changePassword(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user.userId;
+      const { password } = req.body;
+
+      await AuthService.changePassword(userId, password);
+
+      res.status(200).json({
+        success: true,
+        message: 'Password updated successfully',
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
 }
